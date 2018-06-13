@@ -4,6 +4,8 @@
   "description": "Mock Server Testing",
   "author": "Saif Ahmed",
   "dependencies": {
+    "async": "^2.6.1",
+    "babel-polyfill": "^6.26.0",
     "body-parser": "^1.17.1",
     "chai": "^3.5.0",
     "express": "^4.16.3",
@@ -17,13 +19,15 @@
   "scripts": {
     "prestart": "npm install;",
     "start": "JUNIT_REPORT_PATH=test-result/result.xml JUNIT_REPORT_STACK=1 mocha --timeout 25000 --colors --reporter mocha-jenkins-reporter || true",
-    "test": "mocha"
+    "test": "./node_modules/mocha/bin/mocha --compilers js:babel-core/register"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/finfabrik/mocia.git"
   },
   "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-preset-es2015": "^6.24.1",
     "mongo-unit": "^1.3.2"
   }
 }

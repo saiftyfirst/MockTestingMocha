@@ -1,9 +1,9 @@
 {
-    "symbols" : [{"sym" : "btcusd"}, {"sym" : "ltcusd"}, {"sym" : "ltcbtc"}, {"sym" : "ethusd"}, 
-    {"sym" : "ethbtc"}, {"sym" : "etcbtc"}, {"sym" : "etcusd"}, {"sym" : "rrtusd"}, {"sym" : "rrtbtc"}, 
+    "symbols" : [{"sym" : "btcusd"}, {"sym" : "ltcusd"}, {"sym" : "ltcbtc"}, {"sym" : "ethusd"},
+    {"sym" : "ethbtc"}, {"sym" : "etcbtc"}, {"sym" : "etcusd"}, {"sym" : "rrtusd"}, {"sym" : "rrtbtc"},
     {"sym" : "zecusd"},{"sym" : "zecbtc"}, {"sym" : "xmrusd"}, {"sym" : "xmrbtc"}, {"sym" : "dshusd"}, {"sym" : "dshbtc"}],
-    "test_1" : [{"sym" : "btcusd"}, {"sym" : "ltcusd"}],
-    "test_2" : {"timestamp":1444266681, "tid":11988919, "price":"244.8", "amount":"0.03297384", 
+    "test_1" : {"sym" : "btcusd"},
+    "test_2" : {"timestamp":1444266681, "tid":11988919, "price":"244.8", "amount":"0.03297384",
         "exchange":"bitfinex","type":"sell"},
     "test_3" : {
         "id":448364249,
@@ -23,10 +23,10 @@
         "executed_amount":"0.0",
         "order_id":448364249
       },
-      "test_4" : [{
+      "test_4" : {
         "status":"success",
         "message":"1.0 USD transfered from Exchange to Deposit"
-      }],
+      },
       "test_5" : {
         "mid":"244.755",
         "bid":"244.75",
