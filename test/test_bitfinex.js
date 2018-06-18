@@ -6,13 +6,13 @@ import Populator from './bitfinexdb_utils/Populator';
 import Stomp, { Client, Message } from "stompjs";
 import SockJS from "sockjs-client";
 import supertest from 'supertest';
-import _ from 'lodash';
+import config from 'config';
 
 chai.should();
 chai.use(require('chai-like'));
 chai.use(require('chai-things')); // Don't swap these t
 
-const api = supertest('<rest_api>');
+const api = supertest(config.get('api.endpoint'));
 
 const Schema = Mongoose.Schema;
 const dbName = 'response_db';
@@ -39,8 +39,8 @@ describe('REST API Tests', () => {
       // Authenticated by the API endpoint
       api.post('/rest/api/v1/auth/login')
          .send({
-            "username": "<change_me>",
-            "password": "<change_me>"
+            "username": config.get('mongodb.username'),
+            "password": config.get('mongodb.password')
          }).expect(200).end((err, res) => {
          if (err) {
             done(err);
@@ -48,7 +48,7 @@ describe('REST API Tests', () => {
             console.log('API Authenticated');
             auth.token = res.body.access_token;
             // Connect and subscribe to the WebEvent over stomp
-            stompClient = Stomp.over(new SockJS('<socketJS_url>'));
+            stompClient = Stomp.over(new SockJS(config.get('api.webevent')));
             stompClient.connect({simpUser: auth.token},
                (frame) => {
                   console.log('WebSocket connected');
@@ -130,7 +130,7 @@ describe('REST API Tests', () => {
          });
       // retry every 0.5 second till we have 2 events received
       let task = setInterval(()=>{
-         if ( 2 === _.size(results)) {
+         if ( 2 === results.length ) {
             clearInterval(task);
             results.should.include.something.that.like({status: "Accepted"});
             results.should.include.something.that.like({status: "Rejected"});

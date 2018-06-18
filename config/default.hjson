@@ -1,0 +1,11 @@
+{
+  api: {
+    endpoint: '<rest_api>'
+    webevent: '<socketJS_url>'
+  },
+
+  mongodb: {
+    username: '<change_me>'
+    password: '<change_me>'
+  }
+}
