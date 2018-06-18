@@ -12,7 +12,7 @@ chai.should();
 chai.use(require('chai-like'));
 chai.use(require('chai-things')); // Don't swap these t
 
-const api = supertest('http://10.208.0.121:9999');
+const api = supertest('<rest_api>');
 
 const Schema = Mongoose.Schema;
 const dbName = 'response_db';
