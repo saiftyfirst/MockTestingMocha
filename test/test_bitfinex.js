@@ -1,13 +1,20 @@
 // var express = require('express'),
-//     supertest = require('supertest'),
-//     api = supertest('localhost:3000'),
-//     expect = require('chai').expect;
 import 'babel-polyfill';
 import Mongoose from 'mongoose';
-import chai from 'chai';
+import chai, {expect} from 'chai';
 import Populator from './bitfinexdb_utils/Populator';
+import Stomp, { Client, Message } from "stompjs";
+import SockJS from "sockjs-client";
+import supertest from 'supertest';
+import _ from 'lodash';
+
+chai.should();
+chai.use(require('chai-like'));
+chai.use(require('chai-things')); // Don't swap these t
+
+const api = supertest('http://10.208.0.121:9999');
+
 const Schema = Mongoose.Schema;
-const expect = chai.expect;
 const dbName = 'response_db';
 const data = require('./bitfinexdb_utils/data.json');
 
@@ -23,113 +30,112 @@ const options = {
 let testCount = 1 ;
 let testSchema = new Mongoose.Schema({ response : Object});
 
-describe('Database Tests', () => {
+describe('REST API Tests', () => {
+   let results = [];
+   let auth = {};
+   let stompClient;
+   before (function(done) {
+      this.timeout(5000);
+      // Authenticated by the API endpoint
+      api.post('/rest/api/v1/auth/login')
+         .send({
+            "username": "<change_me>",
+            "password": "<change_me>"
+         }).expect(200).end((err, res) => {
+         if (err) {
+            done(err);
+         } else {
+            console.log('API Authenticated');
+            auth.token = res.body.access_token;
+            // Connect and subscribe to the WebEvent over stomp
+            stompClient = Stomp.over(new SockJS('<socketJS_url>'));
+            stompClient.connect({simpUser: auth.token},
+               (frame) => {
+                  console.log('WebSocket connected');
+                  stompClient.subscribe("/user/queue/order", (message) => {
+                     let res = JSON.parse(message.body);
+                     console.log("WebEvent:", JSON.stringify(res));
+                     results.push(res);
+                  });
+                  // Connect to mongodb
+                  Mongoose.connect('mongodb://localhost/' + dbName, options);
+                  Mongoose.connection.once('open', () => {
+                     console.log("Connected to mongodb");
+                     done();
+                  }).on('error', () => done(new Error('failed to connect mongodb')));
+               },
+               (err) => {
+                  console.log("Stomp error:", err);
+                  done(err);
+               }
+            );
+         }
+      });
+   });
+   after(function(done){
+      stompClient.disconnect(()=>{
+         Mongoose.connection.db.dropDatabase(function(){
+            Mongoose.connection.close(done);
+         });
+      })
+   });
 
-    before(function(done){
-        Mongoose.connect('mongodb://localhost/' + dbName, options);
-        Mongoose.connection.once('open', () => {
-            console.log("Connected to db");
+   beforeEach(function(done){
+      results = [];
+      let model = Mongoose.model('test_' + testCount, testSchema);
+      let newObj = new model({ response : data['test_' + testCount++]});
+      newObj.save((err) => {
+         if(err) {
+            done(err)
+         } else {
             done();
-        }).on('error', () => console.log("Error"));
-    })
+         }
+      });
+   });
 
-    beforeEach(function(done){
-        let model = Mongoose.model('test_' + testCount, testSchema);
-        let newObj = new model({ response : data['test_' + testCount++]});
-        newObj.save((err) => {
-            if(err) console.log(err);
+   it("get user info", function (done) {
+      api.get('/rest/api/v1/user')
+         .set('Authorization', 'Bearer ' + auth.token)
+         .expect("Content-type",/json/).expect(200)
+         .end((err, res)=>{
+            if ( err ) done(err);
+            res.body.should.have.property('clientId');
+            res.body.should.have.property('group');
+            res.body.should.have.property('userType');
+            res.body.should.have.property('accounts');
             done();
-        });
-    })
+         });
+   });
 
-    it("test1", function () {
-      console.log("top test1");
-
-    });
-    
-    it("test2", function () {
-        console.log("top test1");
-    });
-    
-    it("test3", function () {
-        console.log("top test1");
-    });
-    
-    it("test4", function () {
-        console.log("top test1");
-    });
-    
-    it("test5", function () {
-        console.log("top test1");
-    });
-
-    it("test6", function () {
-        console.log("top test1");
-    });
-    
-    // it('Should not be null', (done) => {
-        // api.get('/v1/symbols')
-        //     .set('test_id', '1')
-        //     //.expect(400)
-        //     .end(function (err, res) {
-        //         console.log(res.body);
-        //         done();
-        //     });
-    // });
-
-    // it('Should not be null', function(done){
-    //     api.get('/v1/symbols')
-    //         .set('test_id', '2')
-    //         //.expect(400)
-    //         .end(function (err, res) {
-    //             console.log(res.body);
-    //             done();
-    //         });
-    // });
-    //
-    // it('Should not be null', function(done){
-    //     api.get('/v1/symbols')
-    //         .set('test_id', '3')
-    //         //.expect(400)
-    //         .end(function (err, res) {
-    //             console.log(res.body);
-    //             done();
-    //         });
-    // });
-    //
-    // it('Should not be null', function(done){
-    //     api.get('/v1/symbols')
-    //         .set('test_id', '4')
-    //         //.expect(400)
-    //         .end(function (err, res) {
-    //             console.log(res.body);
-    //             done();
-    //         });
-    // });
-    //
-    // it('Should not be null', function(done){
-    //     api.get('/v1/symbols')
-    //         .set('test_id', '5')
-    //         //.expect(400)
-    //         .end(function (err, res) {
-    //             console.log(res.body);
-    //             done();
-    //         });
-    // });
-    //
-    // it('Should not be null', function(done){
-    //     api.get('/v1/symbols')
-    //         .set('test_id', '6')
-    //         //.expect(400)
-    //         .end(function (err, res) {
-    //             console.log(res.body);
-    //             done();
-    //         });
-    // });
-
-    // after(function(done){
-    //     Mongoose.connection.db.dropDatabase(function(){
-    //        Mongoose.connection.close(done);
-    //     });
-    // })
+   it("post order", function (done) {
+      this.timeout(5000);
+      api.post('/rest/api/v1/order')
+         .set('Authorization', 'Bearer ' + auth.token)
+         .set('Content-Type', 'application/json')
+         .send({
+            "account": "5ab0d86dc08f59b7397c3422",
+            "size": 0.0002,
+            "actionPrice": 1,
+            "actionType": "LIMIT",
+            "kind": "order",
+            "ticker": "BTCUSD",
+            "mic": "ABC",
+            "action": "BUY",
+            "currency": "USD"
+         })
+         .expect("Content-type",/json/).expect(200)
+         .end((err, res)=>{
+            if ( err ) done(err);
+            expect(res.body.status).to.equal('Pending_Accepted');
+         });
+      // retry every 0.5 second till we have 2 events received
+      let task = setInterval(()=>{
+         if ( 2 === _.size(results)) {
+            clearInterval(task);
+            results.should.include.something.that.like({status: "Accepted"});
+            results.should.include.something.that.like({status: "Rejected"});
+            done();
+         }
+      }, 500);
+   });
 });
